@@ -15,7 +15,7 @@ const movieSchema = new mongoose.Schema({
         // }
     },
     releaseDate: {
-        type: String,
+        type: Date,
         required: [true, 'The feild is required']
     },
     category: {
@@ -60,4 +60,4 @@ const movieSchema = new mongoose.Schema({
     timestamps:true
 }
 )
-module.exports = new mongoose.model('Moive', movieSchema)
+module.exports = new mongoose.model('Movie', movieSchema)

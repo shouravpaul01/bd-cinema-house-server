@@ -26,15 +26,26 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
+//Get all movies
 router.get('/', async (req, res) => {
     try {
         const result = await movieModel.find({})
         res.status(200).json(result)
+    } catch (err) {
+        console.log("err", err);
+    }
+})
+// Get Specific movie data by ID
+router.get('/edit-data/:_id', async (req, res) => {
+    try {
+        const result = await movieModel.findById(req.params._id)
+        res.status(200).json(result)
     } catch (error) {
-
+        console.log(error);
     }
 })
 
+//Movie Store
 router.post('/', upload.single('movieImage'), async (req, res) => {
     const data = JSON.parse(req.body.newData)
     data['movieImage'] = req.file.filename
@@ -52,7 +63,6 @@ router.post('/', upload.single('movieImage'), async (req, res) => {
         }
 
         if (err.name === 'MongoServerError' && err.code === 11000) {
-            console.log('unique');
             res.json({ code: 204, validationErrors: [{ field: 'name', message: 'Already exist the name.' }] })
         } else if (err.name === 'ValidationError') {
             // Handle validation error
@@ -68,6 +78,8 @@ router.post('/', upload.single('movieImage'), async (req, res) => {
     }
 
 })
+
+//Movie status updated by ID
 router.patch('/update-status', async (req, res) => {
 
     try {
@@ -79,6 +91,8 @@ router.patch('/update-status', async (req, res) => {
         console.log(error);
     }
 })
+
+// Specific movie deleted by ID
 router.delete('/:_id', async (req, res) => {
 
     try {
@@ -94,20 +108,17 @@ router.delete('/:_id', async (req, res) => {
         console.log(error);
     }
 })
-router.get('/edit-data/:_id', async (req, res) => {
-    try {
-        const result = await movieModel.findById(req.params._id)
-        res.status(200).json(result)
-    } catch (error) {
-        console.log(error);
-    }
-})
+
+
+
+//Movie Data updated
 router.patch('/', upload.single('movieImage'), async (req, res) => {
     const data = JSON.parse(req.body.newData)
 
     try {
         const findData = await movieModel.findById(data._id)
 
+        //Delete image
         if (req?.file?.filename) {
             if (findData) {
                 data['movieImage'] = req.file.filename
