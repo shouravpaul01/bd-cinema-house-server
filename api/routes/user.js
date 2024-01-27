@@ -7,7 +7,7 @@ router.post('/', async (req, res) => {
         const result = new userModel(req.body)
         if (result) {
             await result.save()
-            res.status(200).json({ code: 200, message: 'Successfully added' })
+            res.status(200).json({ code: 200, message: 'Successfully Register.' })
         }
     } catch (err) {
 
@@ -30,13 +30,21 @@ router.post('/', async (req, res) => {
 router.get('/', async (req, res) => {
     const page = Number(req.query.page) || 1;
     const pageSize = Number(req.query.pageSize) || 10;
-    console.log(page);
+    const search = req.query.search
+    
     try {
+        const searchValue = {}
+        if (search !== 'null') {
+            searchValue.$or = [
+                { name: { $regex: search, $options: 'i' } },
+                { email: { $regex: search, $options: 'i' } }
+            ]
+        }
+    
         const totalCount = await userModel.countDocuments();
         const totalPages = Math.ceil(totalCount / pageSize);
+        const data = await userModel.find(searchValue).skip((page - 1) * pageSize).limit(pageSize);
 
-        const data = await userModel.find().skip((page - 1) * pageSize).limit(pageSize);
-        
         res.status(200).json({ data, totalPages })
     } catch (error) {
         res.status(500).json({ error: "There was a serser side error." })
@@ -52,6 +60,17 @@ router.patch('/update-role', async (req, res) => {
             { new: true }
         )
         res.status(200).json({ code: 200, message: "Successfully updated" })
+    } catch (error) {
+        console.log(error);
+    }
+})
+
+// User deleted by specific id
+router.delete('/:_id', async (req, res) => {
+
+    try {
+        await userModel.deleteOne({ _id: req.params._id })
+        res.status(200).json({ code: 200, message: "Successfully Deleted" })
     } catch (error) {
         console.log(error);
     }

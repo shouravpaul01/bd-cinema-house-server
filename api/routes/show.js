@@ -6,10 +6,17 @@ const showModel = require('../models/showModel')
 router.get('/', async (req, res) => {
     const page = Number(req.query.page) || 1;
     const pageSize = Number(req.query.pageSize) || 5;
+    // const search = req.query.search{$or: [
+    //     { name: { $regex:search,$options:'i' } },
+        
+    //   ]}
+    // if (search) {
+    //     search.
+    // }
     try {
         const totalCount = await showModel.countDocuments();
         const totalPages = Math.ceil(totalCount / pageSize);
-        const data = await showModel.find({}).skip((page - 1) * pageSize).limit(pageSize).populate('movie');
+        const data = await showModel.find().skip((page - 1) * pageSize).limit(pageSize).populate('movie');
         res.status(200).json({ data, totalPages })
     } catch (err) {
         console.log("err", err);
