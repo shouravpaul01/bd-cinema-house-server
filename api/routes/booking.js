@@ -22,8 +22,8 @@ router.post('/', async (req, res) => {
 })
 // Booking deleted by specific id
 router.delete('/', async (req, res) => {
-    const bookingId = req.query.bookingId
-    const seat = req.query.seat
+    const bookingId = req.query?.bookingId
+    const seat = req.query?.seat
 
     try {
         if (bookingId && seat) {
@@ -97,14 +97,17 @@ router.post('/purchase-confirm/:bookingId', async (req, res) => {
     sslcz.init(data).then(async (apiResponse) => {
         // Redirect the user to payment gateway
         let GatewayPageURL = apiResponse.GatewayPageURL
-        await bookingModel.updateOne({ _id: bookingId }, {
+       const result= await bookingModel.updateOne({ _id: bookingId }, {
             $set: {
                 tranId: tranId,
                 name: req.body.name,
                 phoneNumber: req.body.phoneNumber
             }
         });
-        res.json({ url: GatewayPageURL })
+        if (result.modifiedCount>0) {
+            res.json({ url: GatewayPageURL })
+        }
+        
         console.log('Redirecting to: ', GatewayPageURL)
     });
 
@@ -136,5 +139,49 @@ router.post('/payment/cencel/:bookingId', async (req, res) => {
     }
 
 })
+router.get('/match-by',async(req,res)=>{
+   try {
+    const bookedSeats = await bookingModel.find({movie:req.query.movie,date:req.query.date,time:req.query.time,seatType:req.query.seatType}).select('-_id seat');
+    
+    
+    if (bookedSeats.length > 0) {
+        const newBookedSeats=[].concat(...bookedSeats.map(bookedSeat => bookedSeat.seat));
+       res.json(newBookedSeats)
+      
+    } 
+   } catch (err) {
+    console.log(err.message);
+   }
+   
+})
+router.get('/my-booking', async (req, res) => {
+    const {bookingId,email}=req.query
+    try {
+        if (bookingId && email) {
+            const result = await bookingModel.findOne({ _id: bookingId, email: email }).populate('movie');
+            if (result) {
+                return res.json(result)
+            }
+        }
+        const result = await bookingModel.find({ email: req.query.email }).populate('movie');
+        if (result.length>0) {
+            res.json(result)
+        }
+    } catch (error) {
+        console.log(error.message);
+    }
 
+})
+router.get('/all-booking', async (req, res) => {
+    
+    try {
+        const result = await bookingModel.find({}).populate('movie').sort({createdAt:-1});
+        if (result.length>0) {
+            res.json(result)
+        }
+    } catch (error) {
+        console.log(error.message);
+    }
+
+})
 module.exports = router

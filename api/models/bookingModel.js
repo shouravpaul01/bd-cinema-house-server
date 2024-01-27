@@ -14,6 +14,10 @@ const bookingModel = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "Movie",
     },
+    hallName:{
+        type:String,
+        default:"BD-Cinema-house"
+    },
     time: {
         type: String
     },

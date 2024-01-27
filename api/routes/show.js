@@ -4,9 +4,13 @@ const showModel = require('../models/showModel')
 
 //Get all movie show
 router.get('/', async (req, res) => {
+    const page = Number(req.query.page) || 1;
+    const pageSize = Number(req.query.pageSize) || 5;
     try {
-        const result = await showModel.find({}).populate('movie')
-        res.status(200).json(result)
+        const totalCount = await showModel.countDocuments();
+        const totalPages = Math.ceil(totalCount / pageSize);
+        const data = await showModel.find({}).skip((page - 1) * pageSize).limit(pageSize).populate('movie');
+        res.status(200).json({ data, totalPages })
     } catch (err) {
         console.log("err", err);
     }
@@ -34,7 +38,7 @@ router.get('/edit-data', async (req, res) => {
     }
 })
 
-// Client/Frontend Api
+
 
 //Get all movie show date
 router.get('/active-movie-show-date', async (req, res) => {
